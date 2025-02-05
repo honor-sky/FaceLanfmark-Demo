@@ -45,14 +45,14 @@ class CSFListener(viewModel : CameraViewModel) : FaceLandmarkerHelper.Landmarker
                 val normalizedFocaleX = focalLength!![0]
                 val distance = normalizedFocaleX * (dX / dx) / 10.0
 
-                if(distance >= 35 || distance <= 40) {
+                if(distance >= 350 && distance <= 400) {
                     // 이 거리일 때, 사람의 얼굴 너비를 구함
-                    val faceWidthOnImage = abs(landmark[389].x() - landmark[162].x())
+                    val faceWidthOnImage = abs(landmark[389].x() - landmark[162].x()) * 0.8f
                     val realFaceWidth = ((distance * 10.0 * faceWidthOnImage) / normalizedFocaleX) / 10
                     Log.d("realFaceWidth","$realFaceWidth")
                 }
 
-              //  Log.d("Distance","$distance")
+              Log.d("Distance","$distance")
 
                 GlobalScope.launch(Dispatchers.Main) {
                     viewmodel.changeDistance(distance)
