@@ -18,6 +18,8 @@ import kotlin.math.abs
 class CSFListener(viewModel : CameraViewModel) : FaceLandmarkerHelper.LandmarkerListener {
 
     private val viewmodel = viewModel
+    private var flag = 0
+    var realFaceWidth = 0.0
 
     @OptIn(DelicateCoroutinesApi::class)
     override fun onError(error: String, errorCode: Int) {
@@ -33,35 +35,46 @@ class CSFListener(viewModel : CameraViewModel) : FaceLandmarkerHelper.Landmarker
             if (faceLandmarkerResult.result != null) {
                 val landmark = faceLandmarkerResult.result.faceLandmarks()[0]
 
-                // calculate distance
-                //val dx = abs(landmark[389].x() - landmark[162].x()) * 0.4f
-                //val dX = 145
-                val dx = abs(landmark[469].x() - landmark[471].x()) * 0.26458332f // 카메라 렌즈를 통해 들어온 이미지상 눈 사이 거리
-                val dX = 11.7 // 일반적인 평균 눈 사이 거리
+                // 눈 거리 구하기
+                val dx_iris = abs(landmark[469].x() - landmark[471].x()) * 0.26458332f
+                val dX_iris = 11.7
+
                 val focalLength = CameraManagerCompat.from(FLApplication.context).unwrap()
-                    .getCameraCharacteristics("1").get(
+                    .getCameraCharacteristics("1").get( // 전면카메라 왜곡 보정값을 사용하면 좀 더 결과 좋음
                         CameraCharacteristics.LENS_INFO_AVAILABLE_FOCAL_LENGTHS
                     )
                 val normalizedFocaleX = focalLength!![0]
-                val distance = normalizedFocaleX * (dX / dx) / 10.0
+                val eye_distance = normalizedFocaleX * (dX_iris / dx_iris) / 10.0
 
-                if(distance >= 350 && distance <= 400) {
-                    // 이 거리일 때, 사람의 얼굴 너비를 구함
-                    val faceWidthOnImage = abs(landmark[389].x() - landmark[162].x()) * 0.8f
-                    val realFaceWidth = ((distance * 10.0 * faceWidthOnImage) / normalizedFocaleX) / 10
-                    Log.d("realFaceWidth","$realFaceWidth")
+                if(eye_distance > 299 && eye_distance <= 300 && flag == 0) {
+                // 이 거리일 때, 사람의 얼굴 너비를 구함
+                val faceWidthOnImage = abs(landmark[127].x() - landmark[356].x()) * 0.26458332f
+                 realFaceWidth = (((eye_distance * 10.0 * faceWidthOnImage) / normalizedFocaleX) / 10.0)
+                Log.d("realFaceWidth","$realFaceWidth")
+                    flag = 1
                 }
 
-              Log.d("Distance","$distance")
+                // calculate distance
+                if(flag == 1) {
+                    val dx = abs(landmark[127].x() - landmark[356].x()) * 0.26458332f
+                    val dX = realFaceWidth
+                    val distance = normalizedFocaleX * (dX / dx) /// 10.0
+                    //Log.d("distanceWidth","${((distance * 10.0 * dx) / normalizedFocaleX) / 10.0}")
 
-                GlobalScope.launch(Dispatchers.Main) {
-                    viewmodel.changeDistance(distance)
+                    GlobalScope.launch(Dispatchers.Main) {
+                        viewmodel.changeDistance(distance)
+                        viewmodel.changeFaceWidth(realFaceWidth)
+                    }
+                } else {
+
                 }
+
             } else {
                 //Log.d("Distance","${0.0}")
-                GlobalScope.launch(Dispatchers.Main) {
+                /*GlobalScope.launch(Dispatchers.Main) {
                     viewmodel.changeDistance(0.0)
-                }
+                    viewmodel.changeFaceWidth(0.0)
+                }*/
             }
         }
     }

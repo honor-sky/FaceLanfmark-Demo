@@ -80,7 +80,7 @@ class CameraFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
     private var imageAnalyzer: ImageAnalysis? = null
     private var camera: Camera? = null
     private var cameraProvider: ProcessCameraProvider? = null
-    private var cameraFacing = CameraSelector.LENS_FACING_FRONT //LENS_FACING_FRONT
+    private var cameraFacing = CameraSelector.LENS_FACING_BACK //LENS_FACING_FRONT
 
     /** Blocking ML operations are performed using this executor */
     private lateinit var backgroundExecutor: ExecutorService
@@ -142,6 +142,12 @@ class CameraFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
             val transformedDistance = (it / 10).roundToInt()
             fragmentCameraBinding.distanceTextview.text = "$transformedDistance cm"
         }
+
+        viewmodel.width.observe(viewLifecycleOwner,) { it ->
+            val transformedWidth = it.roundToInt()
+            fragmentCameraBinding.faceWidthTextview.text = "$transformedWidth cm"
+        }
+
 
         return fragmentCameraBinding.root
     }
