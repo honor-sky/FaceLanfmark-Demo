@@ -34,8 +34,10 @@ class CSFListener(viewModel : CameraViewModel) : FaceLandmarkerHelper.Landmarker
                 val landmark = faceLandmarkerResult.result.faceLandmarks()[0]
 
                 // calculate distance
-                val dx = abs(landmark[389].x() - landmark[162].x()) * 0.8f //0.26458332f //468 - 471// 카메라 렌즈를 통해 들어온 이미지상 눈 사이 거리
-                val dX = 147 // 11.7 // 일반적인 평균 눈 사이 거리
+                val dx = abs(landmark[389].x() - landmark[162].x()) * 0.4f
+                val dX = 145
+                //val dx = abs(landmark[469].x() - landmark[471].x()) * 0.26458332f // 카메라 렌즈를 통해 들어온 이미지상 눈 사이 거리
+                //val dX = 11.7 // 일반적인 평균 눈 사이 거리
                 val focalLength = CameraManagerCompat.from(FLApplication.context).unwrap()
                     .getCameraCharacteristics("1").get(
                         CameraCharacteristics.LENS_INFO_AVAILABLE_FOCAL_LENGTHS
