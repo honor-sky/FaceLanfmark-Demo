@@ -19,6 +19,8 @@ import android.annotation.SuppressLint
 import android.content.res.Configuration
 import android.graphics.Canvas
 import android.graphics.Paint
+import android.os.Build
+import android.os.Build.VERSION
 import android.os.Bundle
 import android.util.DisplayMetrics
 import android.util.Log
@@ -138,14 +140,17 @@ class CameraFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
         _fragmentCameraBinding =
             FragmentCameraBinding.inflate(inflater, container, false)
 
-        viewmodel.distance.observe(viewLifecycleOwner,) { it ->
-            val transformedDistance = (it / 10).roundToInt()
-            fragmentCameraBinding.distanceTextview.text = "$transformedDistance cm"
+        viewmodel.distance.observe(viewLifecycleOwner) {
+            fragmentCameraBinding.distanceTextview.text = "${(it / 10.0).roundToInt()} cm"
         }
 
-        viewmodel.width.observe(viewLifecycleOwner,) { it ->
+        viewmodel.width.observe(viewLifecycleOwner) {
             val transformedWidth = it.roundToInt()
-            fragmentCameraBinding.faceWidthTextview.text = "$transformedWidth cm"
+            fragmentCameraBinding.faceWidthTextview.text = "faceWidth : $transformedWidth cm"
+        }
+
+        viewmodel.stepText.observe(viewLifecycleOwner) {
+            fragmentCameraBinding.stepTextview.text = it
         }
 
 

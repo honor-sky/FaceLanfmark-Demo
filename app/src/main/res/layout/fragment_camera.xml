@@ -32,12 +32,30 @@
         android:layout_height="match_parent" />
 
     <TextView
+        android:id="@+id/step_textview"
+        android:layout_width="wrap_content"
+        android:layout_height="100dp"
+        android:layout_marginTop="60dp"
+        android:layout_gravity="center_horizontal"
+        android:textSize="18sp"
+        android:textColor="@android:color/black"/>
+
+  <!--  <TextView
+        android:id="@+id/eye_distance_textview"
+        android:layout_width="wrap_content"
+        android:layout_height="100dp"
+        android:layout_marginTop="80dp"
+        android:layout_gravity="center_horizontal"
+        android:textSize="30sp"
+        android:textColor="@android:color/holo_red_light"/>
+-->
+    <TextView
         android:id="@+id/distance_textview"
         android:layout_width="wrap_content"
         android:layout_height="100dp"
-        android:layout_marginTop="100dp"
+        android:layout_marginTop="95dp"
         android:layout_gravity="center_horizontal"
-        android:textSize="50sp"
+        android:textSize="25sp"
         android:textColor="@android:color/holo_red_light"/>
 
     <TextView
@@ -46,13 +64,10 @@
         android:layout_height="100dp"
         android:layout_marginTop="150dp"
         android:layout_gravity="center_horizontal"
-        android:textSize="50sp"
+        android:textSize="25sp"
         android:textColor="@android:color/holo_red_light"/>
 
-    <com.google.mediapipe.examples.facelandmarker.view.CircleOutlineView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:gravity="center" />
+
 
     <include
         android:id="@+id/bottom_sheet_layout"
