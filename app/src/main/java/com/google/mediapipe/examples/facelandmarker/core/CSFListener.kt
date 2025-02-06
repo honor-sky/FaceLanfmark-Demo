@@ -60,18 +60,24 @@ class CSFListener(viewModel : CameraViewModel) : FaceLandmarkerHelper.Landmarker
 
                 /* Step2. 시력 검사 거리 측정 */
                 if(isGetFaceWidth) {
+
                     val dx = abs(landmark[127].x() - landmark[356].x()) * 0.26458332f // 픽셀을 mm 로 보정
                     val dX = realFaceWidth
                     val distance = normalizedFocaleX * (dX / dx)
+                    Log.d("distance", "$distance")
 
                     GlobalScope.launch(Dispatchers.Main) {
                         if(VERSION.SDK_INT <= 33) {
-                            if(distance >= 70) {
+                            if(distance >= 700) {
                                 viewmodel.changeDistance(distance - 30)
+                            } else {
+                                viewmodel.changeDistance(distance)
                             }
                         } else {
-                            if(distance >= 70) {
-                                viewmodel.changeDistance(distance - 150)
+                            if(distance >= 700) {
+                                viewmodel.changeDistance(distance - 180)
+                            } else {
+                                viewmodel.changeDistance(distance)
                             }
                         }
                     }

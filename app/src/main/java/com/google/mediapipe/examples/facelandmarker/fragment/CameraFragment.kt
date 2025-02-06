@@ -17,24 +17,19 @@ package com.google.mediapipe.examples.facelandmarker.fragment
 
 import android.annotation.SuppressLint
 import android.content.res.Configuration
-import android.graphics.Canvas
-import android.graphics.Paint
-import android.os.Build
-import android.os.Build.VERSION
 import android.os.Bundle
-import android.util.DisplayMetrics
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.Toast
-import androidx.camera.core.Preview
+import androidx.camera.core.AspectRatio
+import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
-import androidx.camera.core.Camera
-import androidx.camera.core.AspectRatio
+import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -43,9 +38,9 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.Navigation
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.viewpager2.widget.ViewPager2.SCROLL_STATE_DRAGGING
-import androidx.viewpager2.widget.ViewPager2.SCROLL_STATE_IDLE
-import androidx.viewpager2.widget.ViewPager2.SCROLL_STATE_SETTLING
-import androidx.viewpager2.widget.ViewPager2.ScrollState
+import com.google.android.datatransport.runtime.scheduling.SchedulingConfigModule_ConfigFactory.config
+import com.google.ar.core.HitResult
+import com.google.ar.core.Pose
 import com.google.mediapipe.examples.facelandmarker.FaceLandmarkerHelper
 import com.google.mediapipe.examples.facelandmarker.MainViewModel
 import com.google.mediapipe.examples.facelandmarker.R
@@ -53,12 +48,13 @@ import com.google.mediapipe.examples.facelandmarker.core.CSFListener
 import com.google.mediapipe.examples.facelandmarker.databinding.FragmentCameraBinding
 import com.google.mediapipe.tasks.vision.core.RunningMode
 import java.util.Locale
-import java.util.Optional
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
-import kotlin.jvm.optionals.toList
 import kotlin.math.roundToInt
+
+
+
 
 class CameraFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
 
@@ -189,14 +185,10 @@ class CameraFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
             )
         }
 
-
-
         // Attach listeners to UI control widgets
         //initBottomSheetControls()
+
     }
-
-
-
 
 
 
@@ -467,4 +459,5 @@ class CameraFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
             }
         }
     }
+
 }
