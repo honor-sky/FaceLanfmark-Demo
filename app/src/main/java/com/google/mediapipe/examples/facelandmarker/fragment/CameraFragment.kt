@@ -39,8 +39,8 @@ import androidx.navigation.Navigation
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.viewpager2.widget.ViewPager2.SCROLL_STATE_DRAGGING
 import com.google.android.datatransport.runtime.scheduling.SchedulingConfigModule_ConfigFactory.config
-import com.google.ar.core.HitResult
-import com.google.ar.core.Pose
+//import com.google.ar.core.HitResult
+//import com.google.ar.core.Pose
 import com.google.mediapipe.examples.facelandmarker.FaceLandmarkerHelper
 import com.google.mediapipe.examples.facelandmarker.MainViewModel
 import com.google.mediapipe.examples.facelandmarker.R
@@ -398,7 +398,7 @@ class CameraFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
     private fun detectFace(imageProxy: ImageProxy) {
         faceLandmarkerHelper.detectLiveStream(
             imageProxy = imageProxy,
-            isFrontCamera = cameraFacing == CameraSelector.LENS_FACING_FRONT
+            isFrontCamera = cameraFacing == CameraSelector.LENS_FACING_BACK
         )
     }
 

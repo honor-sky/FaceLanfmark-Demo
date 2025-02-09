@@ -4,10 +4,13 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
+import android.os.Build
 import android.os.Build.VERSION
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.camera.camera2.internal.compat.CameraManagerCompat
 import com.google.mediapipe.examples.facelandmarker.FLApplication
+import com.google.mediapipe.examples.facelandmarker.FLApplication.Companion.context
 import com.google.mediapipe.examples.facelandmarker.FaceLandmarkerHelper
 import com.google.mediapipe.examples.facelandmarker.fragment.CameraViewModel
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -23,6 +26,8 @@ class CSFListener(viewModel : CameraViewModel) : FaceLandmarkerHelper.Landmarker
     private var isGetFaceWidth = false
     var realFaceWidth = 0.0
 
+
+
     @OptIn(DelicateCoroutinesApi::class)
     override fun onError(error: String, errorCode: Int) {
         GlobalScope.launch(Dispatchers.Main) {
@@ -30,25 +35,33 @@ class CSFListener(viewModel : CameraViewModel) : FaceLandmarkerHelper.Landmarker
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.P)
     @OptIn(DelicateCoroutinesApi::class)
     @SuppressLint("RestrictedApi")
     override fun onResults(resultBundle: FaceLandmarkerHelper.ResultBundle) {
         resultBundle.let { faceLandmarkerResult ->
             if (faceLandmarkerResult.result != null) {
+
                 val landmark = faceLandmarkerResult.result.faceLandmarks()[0]
 
-                val focalLength = CameraManagerCompat.from(FLApplication.context).unwrap()
-                    .getCameraCharacteristics("3").get( // 전면카메라 왜곡 보정값을 사용하면 좀 더 결과 좋음
+                val focalLengthFront = CameraManagerCompat.from(FLApplication.context).unwrap()
+                    .getCameraCharacteristics("1").get( // 전면카메라 왜곡 보정값을 사용하면 좀 더 결과 좋음
                         CameraCharacteristics.LENS_INFO_AVAILABLE_FOCAL_LENGTHS
                     )
-                val normalizedFocaleX = focalLength!![0]
+
+                val focalLengthBack = CameraManagerCompat.from(FLApplication.context).unwrap()
+                    .getCameraCharacteristics("0").get( // 전면카메라 왜곡 보정값을 사용하면 좀 더 결과 좋음
+                        CameraCharacteristics.LENS_INFO_AVAILABLE_FOCAL_LENGTHS
+                    )
+
+                val normalizedFocaleX = 3.3 // 초점 거리 (2M 내외에서의 계산에 적용되는 값)
 
                 /* Step1. 사용자 얼굴 가로 길이 측정 */
                 val dxIris = abs(landmark[469].x() - landmark[471].x()) * 0.26458332f
                 val dXIris = 11.7
                 val eyeDistance = normalizedFocaleX * (dXIris / dxIris) / 10.0
 
-                if(eyeDistance > 299 && eyeDistance <= 300 && !isGetFaceWidth) {
+                if(eyeDistance > 399 && eyeDistance <= 400 && !isGetFaceWidth) {  // 299, 300
                     val faceWidthOnImage = abs(landmark[127].x() - landmark[356].x()) * 0.26458332f
                     realFaceWidth = adjustFaceSize((((eyeDistance * 10.0 * faceWidthOnImage) / normalizedFocaleX) / 10.0), 10.85, 0.81)
                     isGetFaceWidth = true
@@ -64,22 +77,36 @@ class CSFListener(viewModel : CameraViewModel) : FaceLandmarkerHelper.Landmarker
                     val dx = abs(landmark[127].x() - landmark[356].x()) * 0.26458332f // 픽셀을 mm 로 보정
                     val dX = realFaceWidth
                     val distance = normalizedFocaleX * (dX / dx)
-                    Log.d("distance", "$distance")
 
+                    val model = Build.MODEL
                     GlobalScope.launch(Dispatchers.Main) {
-                        if(VERSION.SDK_INT <= 33) {
-                            if(distance >= 700) {
-                                viewmodel.changeDistance(distance - 30)
-                            } else {
-                                viewmodel.changeDistance(distance)
-                            }
+                        if(distance < 700) {
+                            viewmodel.changeDistance(distance)
                         } else {
-                            if(distance >= 700) {
-                                viewmodel.changeDistance(distance - 180)
-                            } else {
-                                viewmodel.changeDistance(distance)
+                            when {
+                                model.startsWith("SM-F711N") -> {
+                                    viewmodel.changeDistance(distance - 30)
+                                }
+                                model.startsWith("SM-S901N") -> {
+                                    viewmodel.changeDistance(distance - 200)
+                                }
+                                model.startsWith("SM-G986N") -> {
+                                    viewmodel.changeDistance(distance - 30)
+                                }
+                                model.startsWith("SM-N981N") -> {
+                                    viewmodel.changeDistance(distance - 30)
+                                }
+                                else -> {
+                                    if(VERSION.SDK_INT <= 33) {
+                                        viewmodel.changeDistance(distance - 30)
+                                    } else {
+                                        viewmodel.changeDistance(distance - 200)
+
+                                    }
+                                }
                             }
                         }
+
                     }
 
                 } else {
@@ -126,4 +153,54 @@ class CSFListener(viewModel : CameraViewModel) : FaceLandmarkerHelper.Landmarker
         val zScore = (myFaceSize - mean) / stdDev
         return mean + (zScore * adjustmentFactor * stdDev)
     }
+
+/*
+    fun normalizePixelCoordinates(x: Float, y: Float, width: Int, height: Int): Pair<Float, Float> {
+        val normX = (x / width) * 2 - 1  // [-1, 1] 범위로 변환
+        val normY = (y / height) * 2 - 1
+        return Pair(normX, normY)
+    }
+
+    fun applyRadialDistortion(x: Float, y: Float, lensDistortion: FloatArray): Pair<Float, Float> {
+        val k1 = lensDistortion[0]
+        val k2 = lensDistortion[1]
+        val k3 = lensDistortion[2]
+
+        val r = x * x + y * y
+        val scaleFactor = 1 + k1 * r + k2 * r * r + k3 * r * r * r
+
+        return Pair(x * scaleFactor, y * scaleFactor)
+    }
+
+    fun applyTangentialDistortion(x: Float, y: Float, lensDistortion: FloatArray): Pair<Float, Float> {
+        val p1 = lensDistortion[3]
+        val p2 = lensDistortion[4]
+
+        val r = x * x + y * y
+        val xT = x + (2 * p1 * x * y + p2 * (r + 2 * x * x))
+        val yT = y + (p1 * (r + 2 * y * y) + 2 * p2 * x * y)
+
+        return Pair(xT, yT)
+    }
+
+    fun denormalizeCoordinates(x: Float, y: Float, width: Int, height: Int): Pair<Float, Float> {
+        val pixelX = ((x + 1) / 2) * width
+        val pixelY = ((y + 1) / 2) * height
+        return Pair(pixelX, pixelY)
+    }
+
+    fun correctLensDistortion(x: Float, y: Float, width: Int, height: Int, lensDistortion: FloatArray): Pair<Float, Float> {
+        // Step 1: 픽셀 좌표 -> 정규화 좌표 변환
+        val (normX, normY) = normalizePixelCoordinates(x, y, width, height)
+
+        // Step 2: 방사 왜곡 적용
+        val (radialX, radialY) = applyRadialDistortion(normX, normY, lensDistortion)
+
+        // Step 3: 접선 왜곡 적용
+        val (correctedX, correctedY) = applyTangentialDistortion(radialX, radialY, lensDistortion)
+
+        // Step 4: 정규화 좌표 -> 픽셀 좌표 변환
+        return denormalizeCoordinates(correctedX, correctedY, width, height)
+
+    } */
 }
